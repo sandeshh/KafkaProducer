@@ -4,12 +4,15 @@ import kafka.producer.ProducerConfig;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 /**
  * Simple Producer
  */
-public class SyslogProducer {
+public class KafkaProducer {
 
     public static void main(String[] args) throws
             IOException, InterruptedException {
@@ -19,7 +22,7 @@ public class SyslogProducer {
             return ;
         }
 
-        String topic = args[0];
+        final String topic = args[0];
         String path = args[1] ;
         String redis = args[2] ;
         Integer numberOfCampaigns = Integer.parseInt(args[3]);
@@ -53,11 +56,23 @@ public class SyslogProducer {
         final EventGenerator eventGenerator = new EventGenerator();
         eventGenerator.init(path);
 
-        while ( true ) {
-            String ads = eventGenerator.generateElement() ;
+        ExecutorService threadPool = Executors.newFixedThreadPool(10);
 
-            producer.send( new KeyedMessage<String, String>(topic, ads ) ) ;
-            // System.out.println(ads);
+        for ( int i = 0 ; i < 10 ; ++i ) {
+
+            threadPool.submit(new Runnable() {
+                public void run() {
+                    while ( true ) {
+                        String ads = eventGenerator.generateElement() ;
+
+                        producer.send( new KeyedMessage<String, String>(topic, ads ) ) ;
+                        // System.out.println(ads);
+                    }
+                }
+            });
         }
+
+        threadPool.shutdown();
+        threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     }
 }

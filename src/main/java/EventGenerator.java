@@ -45,7 +45,6 @@ public class EventGenerator {
 
     }
 
-
     public String generateElement() {
 
         StringBuilder sb = new StringBuilder();
