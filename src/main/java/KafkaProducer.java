@@ -17,18 +17,14 @@ public class KafkaProducer {
     public static void main(String[] args) throws
             IOException, InterruptedException {
 
-        if ( args.length != 6 ) {
-            System.out.println("topic path_to_file redis numberOfCampaigns adsPerCampaigns brokerslist");
+        if ( args.length != 3 ) {
+            System.out.println("topic path_to_file brokerslist");
             return ;
         }
 
         final String topic = args[0];
         String path = args[1] ;
-        String redis = args[2] ;
-        Integer numberOfCampaigns = Integer.parseInt(args[3]);
-        Integer adsPerCampaign = Integer.parseInt(args[4]);
-
-        String brokersList = args[5];
+        String brokersList = args[2];
 
         Properties prop = new Properties();
         prop.put("metadata.broker.list", brokersList );
@@ -44,14 +40,6 @@ public class KafkaProducer {
                 System.out.println("done ...");
             }
         });
-
-        Campaign campaign = new Campaign();
-        campaign.Create(numberOfCampaigns, adsPerCampaign, path);
-
-        // Redis Update
-        RedisHelper redisHelper = new RedisHelper();
-        redisHelper.init(redis);
-        redisHelper.fillDB(path);
 
         final EventGenerator eventGenerator = new EventGenerator();
         eventGenerator.init(path);
